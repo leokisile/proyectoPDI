@@ -41,11 +41,44 @@ def dispatch(ui):
         if op == "Sobel":
             res = filtros.filtro_sobel(img, ui.slider1.value())
 
+        elif op == "Prewitt":
+            res = filtros.filtro_prewitt(img)
+
+        elif op == "Roberts":
+            res = filtros.filtro_roberts(img)
+
+        elif op == "Canny":
+            res = filtros.filtro_canny(img, ui.slider2.value(), ui.slider3.value())
+
+        elif op == "Kirsch":
+            res = filtros.filtro_kirsch(img)
+
+        elif op == "Laplaciano":
+            res = filtros.filtro_laplaciano(img)
+
+        elif op == "Promedio":
+            res = filtros.filtro_promedio(img)
+
+        elif op == "Promedio Pesado":
+            res = filtros.filtro_promediador_pesado(img)
+
         elif op == "Gaussiano":
-            res = filtros.filtro_gaussian(img, ui.slider1.value(), 1)
+            res = filtros.filtro_gaussian(img, ui.slider1.value(), ui.slider2.value())
 
         elif op == "Mediano":
             res = filtros.filtro_mediano(img, ui.slider1.value())
+
+        elif op == "Moda":
+            res = filtros.filtro_moda(img, ui.slider1.value())
+
+        elif op == "Minimo":
+            res = filtros.filtro_minimo(img, ui.slider1.value())
+
+        elif op == "Maximo":
+            res = filtros.filtro_maximo(img, ui.slider1.value())
+
+        elif op == "Bilateral":
+            res = filtros.filtro_bilateral(img)
 
         elif op == "Erosión":
             res = morfo.erosion(img, ui.get_kernel())

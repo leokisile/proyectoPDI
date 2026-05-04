@@ -7,7 +7,14 @@ import numpy as np
 def filtro_sobel(imagen, ksize=3):
     sobel_x = cv2.Sobel(imagen, cv2.CV_64F, 1, 0, ksize=ksize)
     sobel_y = cv2.Sobel(imagen, cv2.CV_64F, 0, 1, ksize=ksize)
-    return cv2.magnitude(sobel_x, sobel_y)
+
+    bordes = cv2.magnitude(sobel_x, sobel_y)
+
+    # Normalización correcta
+    bordes = cv2.normalize(bordes, None, 0, 255, cv2.NORM_MINMAX)
+    bordes = np.uint8(bordes)
+
+    return bordes
 
 def filtro_prewitt(imagen):
     kernel_prewitt_x = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]], dtype=np.float32)

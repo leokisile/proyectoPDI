@@ -44,6 +44,8 @@ class MainWindow(QMainWindow):
             QTreeWidgetItem(["Sobel"]),
             QTreeWidgetItem(["Prewitt"]),
             QTreeWidgetItem(["Roberts"]),
+            QTreeWidgetItem(["Canny"]),
+            QTreeWidgetItem(["Kirsch"]),
             QTreeWidgetItem(["Laplaciano"])
         ])
 
@@ -51,10 +53,19 @@ class MainWindow(QMainWindow):
         paso_bajas.addChildren([
             QTreeWidgetItem(["Gaussiano"]),
             QTreeWidgetItem(["Promedio"]),
-            QTreeWidgetItem(["Mediano"])
+            QTreeWidgetItem(["Promedio Pesado"])
         ])
 
-        filtros.addChildren([paso_altas, paso_bajas])
+        no_lineales = QTreeWidgetItem(["No Lineales"])
+        no_lineales.addChildren([
+            QTreeWidgetItem(["Mediano"]),
+            QTreeWidgetItem(["Moda"]),
+            QTreeWidgetItem(["Minimo"]),
+            QTreeWidgetItem(["Maximo"]),
+            QTreeWidgetItem(["Bilateral"])
+        ])
+
+        filtros.addChildren([paso_altas, paso_bajas, no_lineales])
 
         # ===== MORFOLOGÍA =====
         morfo = QTreeWidgetItem(["Morfología"])
@@ -94,10 +105,15 @@ class MainWindow(QMainWindow):
         self.slider2 = QSlider(Qt.Horizontal)
         self.slider2.setRange(0, 255)
 
-        self.panel.addWidget(QLabel("Parámetro 1"))
+        self.slider3 = QSlider(Qt.Horizontal)
+        self.slider3.setRange(0, 255)
+
+        self.panel.addWidget(QLabel("Parámetro 1 (1-15)"))
         self.panel.addWidget(self.slider1)
-        self.panel.addWidget(QLabel("Parámetro 2"))
+        self.panel.addWidget(QLabel("Parámetro 2 (0-255)"))
         self.panel.addWidget(self.slider2)
+        self.panel.addWidget(QLabel("Parámetro 3 (0-255)"))
+        self.panel.addWidget(self.slider3)
 
         self.kernel_table = QTableWidget(5, 5)
         for i in range(5):
@@ -146,12 +162,22 @@ class MainWindow(QMainWindow):
         self.label_operacion.setText(f"Operación: {op}")
 
         # Mostrar sliders o kernel
-        if op in ["Gaussiano", "Mediano", "Sobel", "Canny"]:
+        # Slider del ksize
+        if op in ["Sobel", "Gaussiano", "Mediano", "Moda", "Maximo", "Minimo"]:
             self.slider1.setVisible(True)
         else:
             self.slider1.setVisible(False)
 
-        self.slider2.setVisible(op == "Canny")
+        # Sliders con valores 0 - 255
+        if op in ["Gaussiano", "Canny"]:
+            self.slider2.setVisible(True)
+        else:
+            self.slider2.setVisible(False)
+
+        if op in ["Canny"]:
+            self.slider3.setVisible(True)
+        else:
+            self.slider3.setVisible(False)
 
         self.kernel_table.setVisible(op in [
             "Erosión", "Dilatación", "Apertura", "Cierre", "Gradiente"
