@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QFileDialog
 from dataIO.loader import cargar_imagen
 from dataIO.saver import guardar_imagen
-from core.filtros import filtro_gaussiano, filtro_promedio, erosion, dilatacion
+from core import filtros, morfo
 import numpy as np
 
 
@@ -21,31 +21,52 @@ def guardar_imagen_event(ui):
         guardar_imagen(path, ui.result_img)
 
 
-def aplicar_segun_opcion(ui):
+# =========================
+# ui/events.py (FIX CRASH)
+# =========================
+from core import filtros, morfo
+
+
+def dispatch(ui):
     if ui.original_img is None:
         return
 
-    op = ui.combo_operaciones.currentText()
-
-    if op == "Filtro Gaussiano":
-        k = ui.slider_kernel.value() | 1  # asegurar impar
-        s = ui.slider_sigma.value()
-        res = filtro_gaussiano(ui.original_img, k, s)
-
-    elif op == "Filtro Promedio":
-        k = ui.slider_kernel.value() | 1
-        res = filtro_promedio(ui.original_img, k)
-
-    elif op == "Erosión":
-        kernel = ui.get_kernel()
-        res = erosion(ui.original_img, kernel)
-
-    elif op == "Dilatación":
-        kernel = ui.get_kernel()
-        res = dilatacion(ui.original_img, kernel)
-
-    else:
+    op = ui.get_selected_operation()
+    if not op:
         return
 
-    ui.result_img = res
-    ui.result_label.set_image(res)
+    img = ui.original_img
+
+    try:
+        if op == "Sobel":
+            res = filtros.filtro_sobel(img, ui.slider1.value())
+
+        elif op == "Gaussiano":
+            res = filtros.filtro_gaussian(img, ui.slider1.value(), 1)
+
+        elif op == "Mediano":
+            res = filtros.filtro_mediano(img, ui.slider1.value())
+
+        elif op == "Erosión":
+            res = morfo.erosion(img, ui.get_kernel())
+
+        elif op == "Dilatación":
+            res = morfo.dilatacion(img, ui.get_kernel())
+
+        elif op == "Apertura":
+            res = morfo.apertura(img, ui.get_kernel())
+
+        elif op == "Cierre":
+            res = morfo.cierre(img, ui.get_kernel())
+
+        elif op == "Gradiente":
+            res = morfo.gradiente_morfologico(img, ui.get_kernel())
+
+        else:
+            return
+
+        ui.result_img = res
+        ui.result_label.set_image(res)
+
+    except Exception as e:
+        print("Error en operación:", e)

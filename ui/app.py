@@ -1,7 +1,11 @@
+# =========================
+# ui/app.py (FIX CRASH + MENU UNIFICADO)
+# =========================
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QComboBox, QLabel, QSlider, QTableWidget, QTableWidgetItem
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QLabel, QPushButton, QSlider, QTableWidget, QTableWidgetItem,
+    QTreeWidget, QTreeWidgetItem
 )
 from PyQt5.QtCore import Qt
 
@@ -14,8 +18,8 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Procesamiento de Imágenes")
-        self.resize(1100, 600)
+        self.setWindowTitle("PDI Plataforma")
+        self.resize(1200, 600)
 
         self.original_img = None
         self.result_img = None
@@ -25,66 +29,94 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
 
         # =====================
-        # MENU
+        # ÁRBOL UNIFICADO
         # =====================
         top = QHBoxLayout()
-        self.combo_operaciones = QComboBox()
-        self.combo_operaciones.addItems([
-            "Seleccionar operación",
-            "Filtro Gaussiano",
-            "Filtro Promedio",
-            "Erosión",
-            "Dilatación"
+
+        self.tree = QTreeWidget()
+        self.tree.setHeaderLabel("Operaciones")
+
+        # ===== FILTROS =====
+        filtros = QTreeWidgetItem(["Filtros"])
+
+        paso_altas = QTreeWidgetItem(["Paso Altas"])
+        paso_altas.addChildren([
+            QTreeWidgetItem(["Sobel"]),
+            QTreeWidgetItem(["Prewitt"]),
+            QTreeWidgetItem(["Roberts"]),
+            QTreeWidgetItem(["Laplaciano"])
         ])
+
+        paso_bajas = QTreeWidgetItem(["Paso Bajas"])
+        paso_bajas.addChildren([
+            QTreeWidgetItem(["Gaussiano"]),
+            QTreeWidgetItem(["Promedio"]),
+            QTreeWidgetItem(["Mediano"])
+        ])
+
+        filtros.addChildren([paso_altas, paso_bajas])
+
+        # ===== MORFOLOGÍA =====
+        morfo = QTreeWidgetItem(["Morfología"])
+        morfo.addChildren([
+            QTreeWidgetItem(["Erosión"]),
+            QTreeWidgetItem(["Dilatación"]),
+            QTreeWidgetItem(["Apertura"]),
+            QTreeWidgetItem(["Cierre"]),
+            QTreeWidgetItem(["Gradiente"])
+        ])
+
+        self.tree.addTopLevelItems([filtros, morfo])
+
+        self.label_operacion = QLabel("Operación: Ninguna")
+
         self.apply_btn = QPushButton("Aplicar")
         self.load_btn = QPushButton("Cargar")
         self.save_btn = QPushButton("Guardar")
 
-        top.addWidget(self.combo_operaciones)
+        top.addWidget(self.tree)
+        top.addWidget(self.label_operacion)
         top.addWidget(self.apply_btn)
         top.addWidget(self.load_btn)
         top.addWidget(self.save_btn)
 
         # =====================
-        # CONTENIDO
+        # LAYOUT 1/3
         # =====================
         main = QHBoxLayout()
 
-        # Panel lateral dinámico
+        # Panel
         self.panel = QVBoxLayout()
 
-        self.slider_kernel = QSlider(Qt.Horizontal)
-        self.slider_kernel.setMinimum(1)
-        self.slider_kernel.setMaximum(15)
-        self.slider_kernel.setValue(5)
+        self.slider1 = QSlider(Qt.Horizontal)
+        self.slider1.setRange(1, 15)
 
-        self.slider_sigma = QSlider(Qt.Horizontal)
-        self.slider_sigma.setMinimum(0)
-        self.slider_sigma.setMaximum(10)
+        self.slider2 = QSlider(Qt.Horizontal)
+        self.slider2.setRange(0, 255)
 
-        self.panel.addWidget(QLabel("Kernel"))
-        self.panel.addWidget(self.slider_kernel)
-        self.panel.addWidget(QLabel("Sigma"))
-        self.panel.addWidget(self.slider_sigma)
+        self.panel.addWidget(QLabel("Parámetro 1"))
+        self.panel.addWidget(self.slider1)
+        self.panel.addWidget(QLabel("Parámetro 2"))
+        self.panel.addWidget(self.slider2)
 
-        # Matriz morfológica
         self.kernel_table = QTableWidget(5, 5)
         for i in range(5):
             for j in range(5):
                 self.kernel_table.setItem(i, j, QTableWidgetItem("1"))
 
-        self.panel.addWidget(QLabel("Elemento estructurante"))
+        self.panel.addWidget(QLabel("Kernel"))
         self.panel.addWidget(self.kernel_table)
 
+        panel_widget = QWidget()
+        panel_widget.setLayout(self.panel)
+
         # Imágenes
-        imgs = QHBoxLayout()
         self.original_label = ImageLabel("Original")
         self.result_label = ImageLabel("Resultado")
-        imgs.addWidget(self.original_label)
-        imgs.addWidget(self.result_label)
 
-        main.addLayout(self.panel)
-        main.addLayout(imgs)
+        main.addWidget(panel_widget, 1)
+        main.addWidget(self.original_label, 1)
+        main.addWidget(self.result_label, 1)
 
         layout.addLayout(top)
         layout.addLayout(main)
@@ -95,22 +127,35 @@ class MainWindow(QMainWindow):
         # =====================
         self.load_btn.clicked.connect(lambda: events.cargar_imagen_event(self))
         self.save_btn.clicked.connect(lambda: events.guardar_imagen_event(self))
-        self.apply_btn.clicked.connect(lambda: events.aplicar_segun_opcion(self))
-        self.combo_operaciones.currentTextChanged.connect(self.update_panel)
+        self.apply_btn.clicked.connect(lambda: events.dispatch(self))
 
-        self.update_panel()
+        self.tree.itemClicked.connect(self.update_ui)
 
-    def update_panel(self):
-        op = self.combo_operaciones.currentText()
+    def get_selected_operation(self):
+        item = self.tree.currentItem()
+        if item and item.childCount() == 0:
+            return item.text(0)
+        return None
 
-        # sliders visibles solo para filtros
-        sliders_visible = op in ["Filtro Gaussiano", "Filtro Promedio"]
-        self.slider_kernel.setVisible(sliders_visible)
-        self.slider_sigma.setVisible(op == "Filtro Gaussiano")
+    def update_ui(self):
+        op = self.get_selected_operation()
 
-        # kernel visible solo en morfología
-        kernel_visible = op in ["Erosión", "Dilatación"]
-        self.kernel_table.setVisible(kernel_visible)
+        if not op:
+            return
+
+        self.label_operacion.setText(f"Operación: {op}")
+
+        # Mostrar sliders o kernel
+        if op in ["Gaussiano", "Mediano", "Sobel", "Canny"]:
+            self.slider1.setVisible(True)
+        else:
+            self.slider1.setVisible(False)
+
+        self.slider2.setVisible(op == "Canny")
+
+        self.kernel_table.setVisible(op in [
+            "Erosión", "Dilatación", "Apertura", "Cierre", "Gradiente"
+        ])
 
     def get_kernel(self):
         rows = self.kernel_table.rowCount()
@@ -119,10 +164,10 @@ class MainWindow(QMainWindow):
         for i in range(rows):
             row = []
             for j in range(cols):
-                val = int(self.kernel_table.item(i, j).text())
-                row.append(val)
+                row.append(int(self.kernel_table.item(i, j).text()))
             mat.append(row)
         return np.array(mat, dtype='uint8')
+
 
 def main():
     app = QApplication(sys.argv)
