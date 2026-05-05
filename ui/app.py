@@ -5,7 +5,7 @@ import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QSlider, QTableWidget, QTableWidgetItem,
-    QTreeWidget, QTreeWidgetItem
+    QTreeWidget, QTreeWidgetItem, QGridLayout
 )
 from PyQt5.QtCore import Qt
 
@@ -19,22 +19,22 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("PDI Plataforma")
-        self.resize(1200, 600)
+        self.resize(1400, 800)
 
         self.original_img = None
+        self.img2 = None
         self.result_img = None
 
         central = QWidget()
         self.setCentralWidget(central)
-        layout = QVBoxLayout()
+        main_layout = QVBoxLayout()
 
         # =====================
         # ÁRBOL UNIFICADO
         # =====================
-        top = QHBoxLayout()
-
         self.tree = QTreeWidget()
         self.tree.setHeaderLabel("Operaciones")
+        self.tree.setMaximumWidth(250)
 
         # ===== FILTROS =====
         filtros = QTreeWidgetItem(["Filtros"])
@@ -97,28 +97,21 @@ class MainWindow(QMainWindow):
 
         morfo.addChildren([ope_basicas, binarias, laticces])
 
-        self.tree.addTopLevelItems([filtros, morfo])
+        logicas = QTreeWidgetItem(["Operaciones Lógicas"])
+        logicas.addChildren([
+            QTreeWidgetItem(["AND"]),
+            QTreeWidgetItem(["OR"]),
+            QTreeWidgetItem(["XOR"])
+        ])
 
-        self.label_operacion = QLabel("Operación: Ninguna")
-
-        self.apply_btn = QPushButton("Aplicar")
-        self.load_btn = QPushButton("Cargar")
-        self.save_btn = QPushButton("Guardar")
-
-        top.addWidget(self.tree)
-        top.addWidget(self.label_operacion)
-        top.addWidget(self.apply_btn)
-        top.addWidget(self.load_btn)
-        top.addWidget(self.save_btn)
+        self.tree.addTopLevelItems([filtros, morfo, logicas])
 
         # =====================
-        # LAYOUT 1/3
+        # PANEL IZQUIERDO
         # =====================
-        main = QHBoxLayout()
+        left_layout = QVBoxLayout()
 
-        # Panel
-        self.panel = QVBoxLayout()
-
+        # Sliders
         self.slider1 = QSlider(Qt.Horizontal)
         self.slider1.setRange(1, 15)
 
@@ -128,42 +121,97 @@ class MainWindow(QMainWindow):
         self.slider3 = QSlider(Qt.Horizontal)
         self.slider3.setRange(0, 255)
 
-        self.panel.addWidget(QLabel("Parámetro 1 (1-15)"))
-        self.panel.addWidget(self.slider1)
-        self.panel.addWidget(QLabel("Parámetro 2 (0-255)"))
-        self.panel.addWidget(self.slider2)
-        self.panel.addWidget(QLabel("Parámetro 3 (0-255)"))
-        self.panel.addWidget(self.slider3)
+        self.slider1.valueChanged.connect(self.update_label_params)
+        self.slider2.valueChanged.connect(self.update_label_params)
+        self.slider3.valueChanged.connect(self.update_label_params)
 
+        # Kernel
         self.kernel_table = QTableWidget(5, 5)
         for i in range(5):
             for j in range(5):
                 self.kernel_table.setItem(i, j, QTableWidgetItem("1"))
 
-        self.panel.addWidget(QLabel("Kernel"))
-        self.panel.addWidget(self.kernel_table)
+        left_layout.addWidget(self.tree)
 
-        panel_widget = QWidget()
-        panel_widget.setLayout(self.panel)
+        left_layout.addWidget(QLabel("Parámetro 1"))
+        left_layout.addWidget(self.slider1)
+        left_layout.addWidget(QLabel("Parámetro 2"))
+        left_layout.addWidget(self.slider2)
+        left_layout.addWidget(QLabel("Parámetro 3"))
+        left_layout.addWidget(self.slider3)
 
-        # Imágenes
+        left_layout.addWidget(QLabel("Kernel"))
+        left_layout.addWidget(self.kernel_table)
+
+        left_widget = QWidget()
+        left_widget.setLayout(left_layout)
+
+        # =====================
+        # CENTRO
+        # =====================
+        center_layout = QVBoxLayout()
+
+        self.load_btn_1 = QPushButton("Cargar Imagen 1")
+        self.img1_label = ImageLabel("Imagen 1")
+
+        self.load_btn_2 = QPushButton("Cargar Imagen 2")
+        self.img2_label = ImageLabel("Imagen 2")
+
+        self.load_btn_2.setVisible(False)
+        self.img2_label.setVisible(False)
+
+        self.label_operacion = QLabel("Operación: Ninguna")
+
+        self.apply_btn = QPushButton("Aplicar")
+        self.save_btn = QPushButton("Guardar")
+
+        center_layout.addWidget(self.load_btn_1)
+        center_layout.addWidget(self.img1_label)
+        center_layout.addWidget(self.load_btn_2)
+        center_layout.addWidget(self.img2_label)
+        center_layout.addWidget(self.label_operacion)
+        center_layout.addWidget(self.apply_btn)
+        center_layout.addWidget(self.save_btn)
+
+        center_widget = QWidget()
+        center_widget.setLayout(center_layout)
+
+        # =====================
+        # DERECHA
+        # =====================
+        right_layout = QVBoxLayout()
+
         self.original_label = ImageLabel("Original")
         self.result_label = ImageLabel("Resultado")
 
-        main.addWidget(panel_widget, 1)
-        main.addWidget(self.original_label, 1)
-        main.addWidget(self.result_label, 1)
+        right_layout.addWidget(self.original_label)
+        right_layout.addWidget(self.result_label)
 
-        layout.addLayout(top)
-        layout.addLayout(main)
-        central.setLayout(layout)
+        right_widget = QWidget()
+        right_widget.setLayout(right_layout)
+
+        # =====================
+        # GRID
+        # =====================
+        grid = QGridLayout()
+        grid.addWidget(left_widget, 0, 0)
+        grid.addWidget(center_widget, 0, 1)
+        grid.addWidget(right_widget, 0, 2)
+
+        grid.setColumnStretch(0, 1)
+        grid.setColumnStretch(1, 1)
+        grid.setColumnStretch(2, 1)
+
+        main_layout.addLayout(grid)
+        central.setLayout(main_layout)
 
         # =====================
         # EVENTOS
         # =====================
-        self.load_btn.clicked.connect(lambda: events.cargar_imagen_event(self))
-        self.save_btn.clicked.connect(lambda: events.guardar_imagen_event(self))
+        self.load_btn_1.clicked.connect(lambda: events.cargar_imagen_event(self))
+        self.load_btn_2.clicked.connect(lambda: events.cargar_imagen2_event(self))
         self.apply_btn.clicked.connect(lambda: events.dispatch(self))
+        self.save_btn.clicked.connect(lambda: events.guardar_imagen_event(self))
 
         self.tree.itemClicked.connect(self.update_ui)
 
@@ -180,6 +228,14 @@ class MainWindow(QMainWindow):
             return
 
         self.label_operacion.setText(f"Operación: {op}")
+
+        # Imagen 2 solo para operaciones lógicas
+        if op in ["AND", "OR", "XOR"]:
+            self.load_btn_2.setVisible(True)
+            self.img2_label.setVisible(True)
+        else:
+            self.load_btn_2.setVisible(False)
+            self.img2_label.setVisible(False)
 
         # Mostrar sliders o kernel
         # Slider del ksize, iteraciones, umbral de poda
@@ -203,6 +259,8 @@ class MainWindow(QMainWindow):
             "Erosion", "Dilatacion", "Apertura", "Cierre", "Gradiente", "Frontera", "Hit-or-Miss", "Top Hat", "Black Hat", "Gradiente simetrico", "Gradiente por erosion", "Gradiente por dilatacion"
         ])
 
+        self.update_label_params()
+
     def get_kernel(self):
         rows = self.kernel_table.rowCount()
         cols = self.kernel_table.columnCount()
@@ -213,6 +271,28 @@ class MainWindow(QMainWindow):
                 row.append(int(self.kernel_table.item(i, j).text()))
             mat.append(row)
         return np.array(mat, dtype='uint8')
+
+    def update_label_params(self):
+        op = self.get_selected_operation()
+
+        if not op:
+            self.label_operacion.setText("Operación: Ninguna")
+            return
+
+        texto = f"Operación: {op}"
+
+        # Mostrar valores según visibilidad
+        if self.slider1.isVisible():
+            texto += f" | Ksize: {self.slider1.value()}"
+
+        if self.slider2.isVisible():
+            texto += f" | P1: {self.slider2.value()}"
+
+        if self.slider3.isVisible():
+            texto += f" | P2: {self.slider3.value()}"
+
+        self.label_operacion.setText(texto)
+
 
 
 def main():

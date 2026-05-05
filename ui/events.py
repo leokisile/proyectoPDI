@@ -11,6 +11,15 @@ def cargar_imagen_event(ui):
         img = cargar_imagen(path)
         ui.original_img = img
         ui.original_label.set_image(img)
+        ui.img1 = img
+        ui.img1_label.set_image(img)
+
+def cargar_imagen2_event(ui):
+    path, _ = QFileDialog.getOpenFileName(None, "Imagen 2")
+    if path:
+        img = cargar_imagen(path)
+        ui.img2 = img
+        ui.img2_label.set_image(img)
 
 
 def guardar_imagen_event(ui):
