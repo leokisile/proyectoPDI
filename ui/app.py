@@ -69,13 +69,33 @@ class MainWindow(QMainWindow):
 
         # ===== MORFOLOGÍA =====
         morfo = QTreeWidgetItem(["Morfología"])
-        morfo.addChildren([
-            QTreeWidgetItem(["Erosión"]),
-            QTreeWidgetItem(["Dilatación"]),
+
+        ope_basicas = QTreeWidgetItem(["Operaciones basicas"])
+        ope_basicas.addChildren([
+            QTreeWidgetItem(["Erosion"]),
+            QTreeWidgetItem(["Dilatacion"]),
             QTreeWidgetItem(["Apertura"]),
-            QTreeWidgetItem(["Cierre"]),
-            QTreeWidgetItem(["Gradiente"])
+            QTreeWidgetItem(["Cierre"])
         ])
+
+        binarias = QTreeWidgetItem(["Morfologia Binaria"])
+        binarias.addChildren([
+            QTreeWidgetItem(["Frontera"]),
+            QTreeWidgetItem(["Adelgazamiento"]),
+            QTreeWidgetItem(["Hit-or-Miss"]),
+            QTreeWidgetItem(["Esqueleto"])
+        ])
+
+        laticces = QTreeWidgetItem(["Morfologia en Laticces"])
+        laticces.addChildren([
+            QTreeWidgetItem(["Gradiente simetrico"]),
+            QTreeWidgetItem(["Gradiente por erosion"]),
+            QTreeWidgetItem(["Gradiente por dilatacion"]),
+            QTreeWidgetItem(["Top Hat"]),
+            QTreeWidgetItem(["Black Hat"])
+        ])
+
+        morfo.addChildren([ope_basicas, binarias, laticces])
 
         self.tree.addTopLevelItems([filtros, morfo])
 
@@ -162,8 +182,8 @@ class MainWindow(QMainWindow):
         self.label_operacion.setText(f"Operación: {op}")
 
         # Mostrar sliders o kernel
-        # Slider del ksize
-        if op in ["Sobel", "Gaussiano", "Mediano", "Moda", "Maximo", "Minimo"]:
+        # Slider del ksize, iteraciones, umbral de poda
+        if op in ["Sobel", "Gaussiano", "Mediano", "Moda", "Maximo", "Minimo", "Erosion", "Dilatacion", "Esqueleto"]:
             self.slider1.setVisible(True)
         else:
             self.slider1.setVisible(False)
@@ -180,7 +200,7 @@ class MainWindow(QMainWindow):
             self.slider3.setVisible(False)
 
         self.kernel_table.setVisible(op in [
-            "Erosión", "Dilatación", "Apertura", "Cierre", "Gradiente"
+            "Erosion", "Dilatacion", "Apertura", "Cierre", "Gradiente", "Frontera", "Hit-or-Miss", "Top Hat", "Black Hat", "Gradiente simetrico", "Gradiente por erosion", "Gradiente por dilatacion"
         ])
 
     def get_kernel(self):

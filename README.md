@@ -6,4 +6,5 @@ Aplicación de escritorio dónde se puede experimentar con distintas técnicas d
 - numpy
 - PyQt5
 - opencv-python
+- opencv-contrib-python
 - Scipy

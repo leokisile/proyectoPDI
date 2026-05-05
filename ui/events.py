@@ -80,11 +80,11 @@ def dispatch(ui):
         elif op == "Bilateral":
             res = filtros.filtro_bilateral(img)
 
-        elif op == "Erosión":
-            res = morfo.erosion(img, ui.get_kernel())
+        elif op == "Erosion":
+            res = morfo.erosion(img, ui.get_kernel(), ui.slider1.value())
 
-        elif op == "Dilatación":
-            res = morfo.dilatacion(img, ui.get_kernel())
+        elif op == "Dilatacion":
+            res = morfo.dilatacion(img, ui.get_kernel(), ui.slider1.value())
 
         elif op == "Apertura":
             res = morfo.apertura(img, ui.get_kernel())
@@ -92,8 +92,32 @@ def dispatch(ui):
         elif op == "Cierre":
             res = morfo.cierre(img, ui.get_kernel())
 
-        elif op == "Gradiente":
+        elif op == "Frontera":
+            res = morfo.frontera(img, ui.get_kernel())
+
+        elif op == "Adelgazamiento":
+            res = morfo.adelgazamiento(img)
+
+        elif op == "Hit-or-Miss":
+            res = morfo.hit_or_miss(img, ui.get_kernel())
+
+        elif op == "Esqueleto":
+            res = morfo.esqueleto_eje_medio(img, ui.slider1.value())
+
+        elif op == "Gradiente simetrico":
             res = morfo.gradiente_morfologico(img, ui.get_kernel())
+
+        elif op == "Gradiente por erosion":
+            res = morfo.gradiente_erosion(img, ui.get_kernel())
+
+        elif op == "Gradiente por dilatacion":
+            res = morfo.gradiente_dilatacion(img, ui.get_kernel())
+
+        elif op == "Top Hat":
+            res = morfo.top_hat(img, ui.get_kernel())
+
+        elif op == "Black Hat":
+            res = morfo.black_hat(img, ui.get_kernel())
 
         else:
             return
