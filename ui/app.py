@@ -3,9 +3,9 @@
 # =========================
 import sys
 from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QSlider, QTableWidget, QTableWidgetItem,
-    QTreeWidget, QTreeWidgetItem, QGridLayout
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QLabel,
+    QPushButton, QSlider, QTableWidget, QTableWidgetItem,
+    QTreeWidget, QTreeWidgetItem, QGridLayout, QComboBox
 )
 from PyQt5.QtCore import Qt
 
@@ -21,9 +21,14 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("PDI Plataforma")
         self.resize(1400, 800)
 
+        #Inicializar imagenes
         self.original_img = None
         self.img2 = None
         self.result_img = None
+
+        # Inicializar historial
+        self.history = []
+        self.history_index = -1
 
         central = QWidget()
         self.setCentralWidget(central)
@@ -101,7 +106,12 @@ class MainWindow(QMainWindow):
         logicas.addChildren([
             QTreeWidgetItem(["AND"]),
             QTreeWidgetItem(["OR"]),
-            QTreeWidgetItem(["XOR"])
+            QTreeWidgetItem(["XOR"]),
+            QTreeWidgetItem(["NOT"]),
+            QTreeWidgetItem(["Suma"]),
+            QTreeWidgetItem(["Resta"]),
+            QTreeWidgetItem(["Multiplicacion"]),
+            QTreeWidgetItem(["Division"])
         ])
 
         self.tree.addTopLevelItems([filtros, morfo, logicas])
@@ -110,6 +120,10 @@ class MainWindow(QMainWindow):
         # PANEL IZQUIERDO
         # =====================
         left_layout = QVBoxLayout()
+
+        #Elegir imagen
+        self.source_combo = QComboBox()
+        self.source_combo.addItems(["Imagen original", "Resultado"])
 
         # Sliders
         self.slider1 = QSlider(Qt.Horizontal)
@@ -132,6 +146,9 @@ class MainWindow(QMainWindow):
                 self.kernel_table.setItem(i, j, QTableWidgetItem("1"))
 
         left_layout.addWidget(self.tree)
+
+        left_layout.addWidget(QLabel("Aplicar sobre:"))
+        left_layout.addWidget(self.source_combo)
 
         left_layout.addWidget(QLabel("Parámetro 1"))
         left_layout.addWidget(self.slider1)
@@ -184,8 +201,14 @@ class MainWindow(QMainWindow):
         self.original_label = ImageLabel("Original")
         self.result_label = ImageLabel("Resultado")
 
+        self.undo_btn = QPushButton("← Undo")
+        self.redo_btn = QPushButton("Redo →")
+
         right_layout.addWidget(self.original_label)
         right_layout.addWidget(self.result_label)
+
+        right_layout.addWidget(self.undo_btn)
+        right_layout.addWidget(self.redo_btn)
 
         right_widget = QWidget()
         right_widget.setLayout(right_layout)
@@ -212,6 +235,8 @@ class MainWindow(QMainWindow):
         self.load_btn_2.clicked.connect(lambda: events.cargar_imagen2_event(self))
         self.apply_btn.clicked.connect(lambda: events.dispatch(self))
         self.save_btn.clicked.connect(lambda: events.guardar_imagen_event(self))
+        self.undo_btn.clicked.connect(lambda: events.undo(self))
+        self.redo_btn.clicked.connect(lambda: events.redo(self))
 
         self.tree.itemClicked.connect(self.update_ui)
 
@@ -230,7 +255,12 @@ class MainWindow(QMainWindow):
         self.label_operacion.setText(f"Operación: {op}")
 
         # Imagen 2 solo para operaciones lógicas
-        if op in ["AND", "OR", "XOR"]:
+        ops_2_imgs = [
+            "AND", "OR", "XOR",
+            "Suma", "Resta",
+            "Multiplicacion", "Division"
+        ]
+        if op in ops_2_imgs:
             self.load_btn_2.setVisible(True)
             self.img2_label.setVisible(True)
         else:
@@ -270,7 +300,7 @@ class MainWindow(QMainWindow):
             for j in range(cols):
                 row.append(int(self.kernel_table.item(i, j).text()))
             mat.append(row)
-        return np.array(mat, dtype='uint8')
+        return np.array(mat, dtype='int8')
 
     def update_label_params(self):
         op = self.get_selected_operation()

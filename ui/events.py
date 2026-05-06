@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QFileDialog
 from dataIO.loader import cargar_imagen
 from dataIO.saver import guardar_imagen
-from core import filtros, morfo
+import cv2
 import numpy as np
 
 
@@ -29,22 +29,44 @@ def guardar_imagen_event(ui):
     if path:
         guardar_imagen(path, ui.result_img)
 
+def undo(ui):
+    if ui.history_index > 0:
+        ui.history_index -= 1
+        img = ui.history[ui.history_index]
+        ui.result_img = img
+        ui.result_label.set_image(img)
 
-# =========================
-# ui/events.py (FIX CRASH)
-# =========================
-from core import filtros, morfo
+
+def redo(ui):
+    if ui.history_index < len(ui.history) - 1:
+        ui.history_index += 1
+        img = ui.history[ui.history_index]
+        ui.result_img = img
+        ui.result_label.set_image(img)
+
+
+from core import filtros, morfo, logicas
 
 
 def dispatch(ui):
-    if ui.original_img is None:
+    if ui.original_img is None and ui.result_img is None:
         return
 
     op = ui.get_selected_operation()
     if not op:
         return
 
-    img = ui.original_img
+    if ui.source_combo.currentText() == "Resultado" and ui.result_img is not None:
+        img = ui.result_img
+    else:
+        img = ui.original_img
+
+    operaciones_logicas = {"AND", "OR", "XOR", "NOT"}
+
+    if op in operaciones_logicas:
+        if ui.img2 is None:
+            print("Falta imagen 2")
+            return
 
     try:
         if op == "Sobel":
@@ -128,8 +150,52 @@ def dispatch(ui):
         elif op == "Black Hat":
             res = morfo.black_hat(img, ui.get_kernel())
 
+        elif op == "AND":
+            if ui.img2 is None:
+                return
+            res = logicas.and_logico(img, ui.img2)
+
+        elif op == "OR":
+            if ui.img2 is None:
+                return
+            res = logicas.or_logico(img, ui.img2)
+
+        elif op == "XOR":
+            if ui.img2 is None:
+                return
+            res = logicas.xor_logico(img, ui.img2)
+
+        elif op == "NOT":
+            res = logicas.not_logico(img)
+
+        elif op == "Suma":
+            if ui.img2 is None:
+                return
+            res = logicas.suma(img, ui.img2)
+
+        elif op == "Resta":
+            if ui.img2 is None:
+                return
+            res = logicas.resta(img, ui.img2)
+
+        elif op == "Multiplicacion":
+            if ui.img2 is None:
+                return
+            res = logicas.multiplicacion(img, ui.img2)
+
+        elif op == "Division":
+            if ui.img2 is None:
+                return
+            res = logicas.division(img, ui.img2)
+
         else:
             return
+
+        # cortar historial si hiciste undo antes
+        ui.history = ui.history[:ui.history_index + 1]
+
+        ui.history.append(res)
+        ui.history_index += 1
 
         ui.result_img = res
         ui.result_label.set_image(res)
