@@ -9,10 +9,11 @@ def cargar_imagen_event(ui):
     path, _ = QFileDialog.getOpenFileName(None, "Seleccionar imagen")
     if path:
         img = cargar_imagen(path)
-        ui.original_img = img
-        ui.original_label.set_image(img)
+        print("Se cargo la imagen")
         ui.img1 = img
         ui.img1_label.set_image(img)
+        print("Se muestra la imagen")
+        ui.mostrar_histograma(img)
 
 def cargar_imagen2_event(ui):
     path, _ = QFileDialog.getOpenFileName(None, "Imagen 2")
@@ -20,6 +21,7 @@ def cargar_imagen2_event(ui):
         img = cargar_imagen(path)
         ui.img2 = img
         ui.img2_label.set_image(img)
+        ui.mostrar_histograma(img)
 
 
 def guardar_imagen_event(ui):
@@ -49,7 +51,7 @@ from core import filtros, morfo, logicas
 
 
 def dispatch(ui):
-    if ui.original_img is None and ui.result_img is None:
+    if ui.img1 is None and ui.result_img is None:
         return
 
     op = ui.get_selected_operation()
@@ -59,7 +61,7 @@ def dispatch(ui):
     if ui.source_combo.currentText() == "Resultado" and ui.result_img is not None:
         img = ui.result_img
     else:
-        img = ui.original_img
+        img = ui.img1
 
     operaciones_logicas = {"AND", "OR", "XOR", "NOT"}
 
@@ -199,6 +201,7 @@ def dispatch(ui):
 
         ui.result_img = res
         ui.result_label.set_image(res)
+        ui.mostrar_histograma(res)
 
     except Exception as e:
         print("Error en operación:", e)

@@ -12,6 +12,8 @@ from PyQt5.QtCore import Qt
 from ui.components import ImageLabel
 from ui import events
 import numpy as np
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 
 class MainWindow(QMainWindow):
@@ -198,17 +200,19 @@ class MainWindow(QMainWindow):
         # =====================
         right_layout = QVBoxLayout()
 
-        self.original_label = ImageLabel("Original")
         self.result_label = ImageLabel("Resultado")
 
         self.undo_btn = QPushButton("← Undo")
         self.redo_btn = QPushButton("Redo →")
 
-        right_layout.addWidget(self.original_label)
+        self.figure = Figure(figsize=(5, 3))
+        self.canvas = FigureCanvas(self.figure)
+
         right_layout.addWidget(self.result_label)
 
         right_layout.addWidget(self.undo_btn)
         right_layout.addWidget(self.redo_btn)
+        right_layout.addWidget(self.canvas)
 
         right_widget = QWidget()
         right_widget.setLayout(right_layout)
@@ -322,6 +326,38 @@ class MainWindow(QMainWindow):
             texto += f" | P2: {self.slider3.value()}"
 
         self.label_operacion.setText(texto)
+
+    def mostrar_histograma(self, img):
+
+        from core import histogramas
+
+        self.figure.clear()
+        ax = self.figure.add_subplot(111)
+
+        x = np.arange(256)  # eje real del histograma
+
+        if len(img.shape) == 2:
+
+            hist = histogramas.histograma_grises(img)
+
+            ax.plot(x, hist, color='black')
+
+        else:
+
+            hist_b, hist_g, hist_r = histogramas.histograma_rgb(img)
+            print(hist_b, hist_g, hist_r)
+
+            ax.plot(x, hist_b, color='blue', label='Blue')
+            ax.plot(x, hist_g, color='green', label='Green')
+            ax.plot(x, hist_r, color='red', label='Red')
+
+            ax.legend()
+
+        ax.set_title("Histograma")
+
+        ax.set_xlim(-2, 257)
+
+        self.canvas.draw()
 
 
 
