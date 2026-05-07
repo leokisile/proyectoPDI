@@ -43,6 +43,30 @@ class MainWindow(QMainWindow):
         self.tree.setHeaderLabel("Operaciones")
         self.tree.setMaximumWidth(250)
 
+        # ===== Operaciones generales =====
+        generales = QTreeWidgetItem(["Operaciones Generales"])
+        generales.addChildren([
+            QTreeWidgetItem(["Normalizar"]),
+            QTreeWidgetItem(["Convertir a Grises"]),
+            QTreeWidgetItem(["Expandir histograma"]),
+            QTreeWidgetItem(["Contraer histograma"]),
+            QTreeWidgetItem(["Negativo"]),
+            QTreeWidgetItem(["Umbralizacion"])
+        ])
+
+        # ===== Operaciones lógicas y aritméticas =====
+        logicas = QTreeWidgetItem(["Operaciones Lógicas"])
+        logicas.addChildren([
+            QTreeWidgetItem(["AND"]),
+            QTreeWidgetItem(["OR"]),
+            QTreeWidgetItem(["XOR"]),
+            QTreeWidgetItem(["NOT"]),
+            QTreeWidgetItem(["Suma"]),
+            QTreeWidgetItem(["Resta"]),
+            QTreeWidgetItem(["Multiplicacion"]),
+            QTreeWidgetItem(["Division"])
+        ])
+
         # ===== FILTROS =====
         filtros = QTreeWidgetItem(["Filtros"])
 
@@ -104,19 +128,7 @@ class MainWindow(QMainWindow):
 
         morfo.addChildren([ope_basicas, binarias, laticces])
 
-        logicas = QTreeWidgetItem(["Operaciones Lógicas"])
-        logicas.addChildren([
-            QTreeWidgetItem(["AND"]),
-            QTreeWidgetItem(["OR"]),
-            QTreeWidgetItem(["XOR"]),
-            QTreeWidgetItem(["NOT"]),
-            QTreeWidgetItem(["Suma"]),
-            QTreeWidgetItem(["Resta"]),
-            QTreeWidgetItem(["Multiplicacion"]),
-            QTreeWidgetItem(["Division"])
-        ])
-
-        self.tree.addTopLevelItems([filtros, morfo, logicas])
+        self.tree.addTopLevelItems([generales, logicas, filtros, morfo])
 
         # =====================
         # PANEL IZQUIERDO
@@ -279,12 +291,12 @@ class MainWindow(QMainWindow):
             self.slider1.setVisible(False)
 
         # Sliders con valores 0 - 255
-        if op in ["Gaussiano", "Canny"]:
+        if op in ["Gaussiano", "Canny", "Expandir histograma", "Contraer histograma", "Umbralizacion"]:
             self.slider2.setVisible(True)
         else:
             self.slider2.setVisible(False)
 
-        if op in ["Canny"]:
+        if op in ["Canny", "Expandir histograma", "Contraer histograma"]:
             self.slider3.setVisible(True)
         else:
             self.slider3.setVisible(False)

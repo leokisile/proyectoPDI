@@ -47,7 +47,7 @@ def redo(ui):
         ui.result_label.set_image(img)
 
 
-from core import filtros, morfo, logicas
+from core import filtros, morfo, logicas, utils
 
 
 def dispatch(ui):
@@ -189,6 +189,24 @@ def dispatch(ui):
             if ui.img2 is None:
                 return
             res = logicas.division(img, ui.img2)
+
+        elif op == "Normalizar":
+            res = utils.normalizar(img)
+
+        elif op == "Convertir a Grises":
+            res = utils.rgb_a_grises(img)
+
+        elif op == "Expandir histograma":
+            res = utils.expansion_histograma(img, np.min(img), np.max(img), ui.slider2.value(), ui.slider3.value())
+
+        elif op == "Contraer histograma":
+            res = utils.contraccion_histograma(img, np.min(img), np.max(img), ui.slider2.value(), ui.slider3.value())
+
+        elif op == "Negativo":
+            res = utils.negativo(img)
+
+        elif op == "Umbralizacion":
+            res = utils.umbral(img)
 
         else:
             return
