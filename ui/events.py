@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import QFileDialog
 from dataIO.loader import cargar_imagen
 from dataIO.saver import guardar_imagen
+from core import filtros, morfo, logicas, utils, ecualizaciones, umbralizaciones, componentesConexas, ruido, aranaRoja
 import cv2
 import numpy as np
 
@@ -37,6 +38,7 @@ def undo(ui):
         img = ui.history[ui.history_index]
         ui.result_img = img
         ui.result_label.set_image(img)
+        ui.mostrar_histograma(img)
 
 
 def redo(ui):
@@ -45,9 +47,7 @@ def redo(ui):
         img = ui.history[ui.history_index]
         ui.result_img = img
         ui.result_label.set_image(img)
-
-
-from core import filtros, morfo, logicas, utils
+        ui.mostrar_histograma(img)
 
 
 def dispatch(ui):
@@ -207,6 +207,134 @@ def dispatch(ui):
 
         elif op == "Umbralizacion":
             res = utils.umbral(img)
+
+        elif op == "Ecualización del Histograma":
+            res = ecualizaciones.ecualizacion_histograma(img)
+
+        elif op == "Ecualización Uniforme":
+            res = ecualizaciones.ecualizacion_uniforme(img)
+
+        elif op == "Exponencial":
+            res = ecualizaciones.ecualizacion_exponencial(img)
+
+        elif op == "Rayleigh":
+            res = ecualizaciones.ecualizacion_rayleigh(img)
+
+        elif op == "Hipercúbica":
+            res = ecualizaciones.ecualizacion_hipercubica(img)
+
+        elif op == "Logarítmica Hiperbólica":
+            res = ecualizaciones.ecualizacion_logaritmica_hiperbolica(img)
+
+        elif op == "Función Potencia":
+            res = ecualizaciones.funcion_potencia(img, ui.slider1.value())
+
+        elif op == "Corrección Gamma":
+            res = ecualizaciones.correccion_gamma(img, ui.slider1.value())
+
+        elif op == "Otsu":
+            res = umbralizaciones.otsu(img)
+
+        elif op == "Entropía de Kapur":
+            res = umbralizaciones.entropia_kapur(img)
+
+        elif op == "Mínimo del Histograma":
+            res = umbralizaciones.minimo_histograma(img)
+
+        elif op == "Usando la Media":
+            res = umbralizaciones.umbral_media(img)
+
+        elif op == "Múltiples Umbrales":
+            t1 = ui.slider2.value()
+            t2 = ui.slider3.value()
+
+            if t1 > t2:
+                t1, t2 = t2, t1
+
+            res = umbralizaciones.multiples_umbrales(img, t1, t2)
+
+        elif op == "Umbral Banda":
+            t1 = ui.slider2.value()
+            t2 = ui.slider3.value()
+
+            if t1 > t2:
+                t1, t2 = t2, t1
+
+            res = umbralizaciones.umbral_banda(img, t1, t2)
+
+        elif op == "Vecindad 4":
+            res = componentesConexas.vecindad_4(img)
+
+        elif op == "Vecindad 8":
+            res = componentesConexas.vecindad_8(img)
+
+        elif op == "Conteo de objetos":
+            res = componentesConexas.conteo_objetos(img)
+
+        elif op == "Ruido sal-pimienta":
+            prob = ui.slider1.value() / 100
+            res = ruido.ruido_sal_pimienta(img, prob)
+
+        elif op == "Ruido gaussiano":
+            sigma = ui.slider2.value()
+            res = ruido.ruido_gaussiano(img, sigma=sigma)
+
+        elif op == "Ruido multiplicativo":
+            sigma = ui.slider1.value() / 100
+            res = ruido.ruido_multiplicativo(img, sigma=sigma)
+
+        elif op == "A Extraer rojo-verde":
+
+            res = aranaRoja.extraer_rojo_verde(img)
+
+
+        elif op == "A Expandir contraste":
+
+            res = aranaRoja.expandir_contraste(img)
+
+
+        elif op == "A Filtro mediana":
+
+            res = aranaRoja.suavizar_mediana(img)
+
+
+        elif op == "A Umbral araña roja":
+
+            res = aranaRoja.umbral_araña_roja(img)
+
+
+        elif op == "A Filtrar componentes":
+            if ui.result_img is None:
+                return
+            res = aranaRoja.filtrar_componentes(
+                ui.result_img,
+                img
+            )
+
+
+        elif op == "A Resaltar segmentación":
+            if ui.result_img is None:
+                return
+            res = aranaRoja.resaltar_segmentacion(
+                img,
+                ui.result_img
+            )
+
+        elif op == "Araña roja automática":
+
+            resultados = aranaRoja.procesar_arana_roja(
+                img
+            )
+
+            res = resultados["resultado"]
+
+            # Guardar etapas por si después quieres visualizarlas
+            ui.arana_img_original = resultados["original"]
+            ui.arana_rg = resultados["rojo_verde"]
+            ui.arana_expansion = resultados["expansion"]
+            ui.arana_suavizada = resultados["suavizada"]
+            ui.arana_binaria = resultados["binaria"]
+            ui.arana_final = resultados["mascara_final"]
 
         else:
             return

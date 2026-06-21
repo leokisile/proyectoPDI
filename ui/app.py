@@ -128,7 +128,59 @@ class MainWindow(QMainWindow):
 
         morfo.addChildren([ope_basicas, binarias, laticces])
 
-        self.tree.addTopLevelItems([generales, logicas, filtros, morfo])
+        # ===== Ecualizaciones del histograma =====
+        ecualizaciones = QTreeWidgetItem(["Ecualizaciones"])
+        ecualizaciones.addChildren([
+            QTreeWidgetItem(["Ecualización del Histograma"]),
+            QTreeWidgetItem(["Ecualización Uniforme"]),
+            QTreeWidgetItem(["Exponencial"]),
+            QTreeWidgetItem(["Rayleigh"]),
+            QTreeWidgetItem(["Hipercúbica"]),
+            QTreeWidgetItem(["Logarítmica Hiperbólica"]),
+            QTreeWidgetItem(["Función Potencia"]),
+            QTreeWidgetItem(["Corrección Gamma"])
+        ])
+
+        # ===== Umbralizaciones del histograma =====
+        umbrales = QTreeWidgetItem(["Umbralizaciones"])
+        umbrales.addChildren([
+            QTreeWidgetItem(["Otsu"]),
+            QTreeWidgetItem(["Entropía de Kapur"]),
+            QTreeWidgetItem(["Mínimo del Histograma"]),
+            QTreeWidgetItem(["Usando la Media"]),
+            QTreeWidgetItem(["Múltiples Umbrales"]),
+            QTreeWidgetItem(["Umbral Banda"])
+        ])
+
+        # ===== Componentes Conexas =====
+        conexas = QTreeWidgetItem(["Componentes Conexas"])
+        conexas.addChildren([
+            QTreeWidgetItem(["Vecindad 4"]),
+            QTreeWidgetItem(["Vecindad 8"]),
+            QTreeWidgetItem(["Conteo de objetos"])
+        ])
+
+        # ===== Modelado de ruido =====
+        ruido = QTreeWidgetItem(["Modelado de ruido"])
+        ruido.addChildren([
+            QTreeWidgetItem(["Ruido sal-pimienta"]),
+            QTreeWidgetItem(["Ruido gaussiano"]),
+            QTreeWidgetItem(["Ruido multiplicativo"])
+        ])
+
+        # ===== Araña Roja =====
+        arana = QTreeWidgetItem(["Araña Roja"])
+        arana.addChildren([
+            QTreeWidgetItem(["A Extraer rojo-verde"]),
+            QTreeWidgetItem(["A Expandir contraste"]),
+            QTreeWidgetItem(["A Filtro mediana"]),
+            QTreeWidgetItem(["A Umbral araña roja"]),
+            QTreeWidgetItem(["A Filtrar componentes"]),
+            QTreeWidgetItem(["A Resaltar segmentación"]),
+            QTreeWidgetItem(["Araña roja automática"])
+        ])
+
+        self.tree.addTopLevelItems([generales, ruido, logicas, umbrales, conexas, ecualizaciones, filtros, morfo, arana])
 
         # =====================
         # PANEL IZQUIERDO
@@ -285,18 +337,18 @@ class MainWindow(QMainWindow):
 
         # Mostrar sliders o kernel
         # Slider del ksize, iteraciones, umbral de poda
-        if op in ["Sobel", "Gaussiano", "Mediano", "Moda", "Maximo", "Minimo", "Erosion", "Dilatacion", "Esqueleto"]:
+        if op in ["Sobel", "Gaussiano", "Mediano", "Moda", "Maximo", "Minimo", "Erosion", "Dilatacion", "Esqueleto", "Función Potencia", "Corrección Gamma", "Ruido sal-pimienta", "Ruido multiplicativo"]:
             self.slider1.setVisible(True)
         else:
             self.slider1.setVisible(False)
 
         # Sliders con valores 0 - 255
-        if op in ["Gaussiano", "Canny", "Expandir histograma", "Contraer histograma", "Umbralizacion"]:
+        if op in ["Gaussiano", "Canny", "Expandir histograma", "Contraer histograma", "Umbralizacion", "Múltiples Umbrales", "Umbral Banda", "Ruido gaussiano"]:
             self.slider2.setVisible(True)
         else:
             self.slider2.setVisible(False)
 
-        if op in ["Canny", "Expandir histograma", "Contraer histograma"]:
+        if op in ["Canny", "Expandir histograma", "Contraer histograma", "Múltiples Umbrales", "Umbral Banda"]:
             self.slider3.setVisible(True)
         else:
             self.slider3.setVisible(False)
